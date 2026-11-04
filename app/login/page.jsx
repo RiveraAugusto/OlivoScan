@@ -13,7 +13,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
-import { Sprout, Mail, Lock, User, MapPin, AlertCircle, CheckCircle } from 'lucide-react'
+import { Sprout, Mail, Lock, User, MapPin, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
 
 function ClsLoginPageContent() {
   const router = useRouter()
@@ -24,6 +24,7 @@ function ClsLoginPageContent() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [contrasena, setContrasena] = useState('')
+  const [mostrarContrasena, setMostrarContrasena] = useState(false)
   const [zonaGeografica, setZonaGeografica] = useState('')
 
   // Estado para la pestaña activa: 'login', 'registro', 'recuperar'
@@ -52,6 +53,7 @@ function ClsLoginPageContent() {
     setMensajeConfirmacion(null)
     // Limpiar campos para evitar mezclar informacion
     setContrasena('')
+    setMostrarContrasena(false)
   }
 
   // Enviar formulario de inicio de sesión
@@ -242,7 +244,7 @@ function ClsLoginPageContent() {
                   <input
                     id="login-contrasena"
                     name="password"
-                    type="password"
+                    type={mostrarContrasena ? 'text' : 'password'}
                     autoComplete="current-password"
                     required
                     disabled={estaCargando}
@@ -250,7 +252,19 @@ function ClsLoginPageContent() {
                     onChange={(e) => setContrasena(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2.5 bg-olive-50/50 border border-olive-200 rounded-lg text-sm text-olive-950 placeholder-olive-400 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500 disabled:opacity-60 transition-all"
                     placeholder="Ingrese su contraseña"
+                    style={{ paddingRight: '3rem' }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setMostrarContrasena((visible) => !visible)}
+                    disabled={estaCargando}
+                    aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-pressed={mostrarContrasena}
+                    aria-controls="login-contrasena"
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-olive-600 hover:text-olive-800 focus-visible:outline-2 focus-visible:outline-olive-500 rounded-r-lg disabled:opacity-60 cursor-pointer"
+                  >
+                    {mostrarContrasena ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
+                  </button>
                 </div>
               </div>
             </div>
@@ -337,14 +351,27 @@ function ClsLoginPageContent() {
                   <input
                     id="reg-contrasena"
                     name="password"
-                    type="password"
+                    type={mostrarContrasena ? 'text' : 'password'}
+                    autoComplete="new-password"
                     required
                     disabled={estaCargando}
                     value={contrasena}
                     onChange={(e) => setContrasena(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2.5 bg-olive-50/50 border border-olive-200 rounded-lg text-sm text-olive-950 placeholder-olive-400 focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-olive-500 disabled:opacity-60 transition-all"
                     placeholder="Mínimo 6 caracteres"
+                    style={{ paddingRight: '3rem' }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setMostrarContrasena((visible) => !visible)}
+                    disabled={estaCargando}
+                    aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-pressed={mostrarContrasena}
+                    aria-controls="reg-contrasena"
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-olive-600 hover:text-olive-800 focus-visible:outline-2 focus-visible:outline-olive-500 rounded-r-lg disabled:opacity-60 cursor-pointer"
+                  >
+                    {mostrarContrasena ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
+                  </button>
                 </div>
               </div>
 
