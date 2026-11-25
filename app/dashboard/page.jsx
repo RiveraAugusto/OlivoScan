@@ -108,7 +108,12 @@ export default function Page() {
                   )
                 })}
               </div>
-              <div className="data-scroll">
+              <div
+                className="data-scroll"
+                tabIndex={0}
+                role="region"
+                aria-label="Datos mensuales de muestras"
+              >
                 <table>
                   <caption className="sr-only">Valores mensuales en cantidad de muestras</caption>
                   <thead>

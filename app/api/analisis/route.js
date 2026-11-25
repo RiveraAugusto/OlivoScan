@@ -55,6 +55,7 @@ export const POST = endpoint(async (request, { db, user }) => {
           imagen_public_id: publicId,
           imagen_privada: true,
           advertencias_imagen: image.warnings,
+          procesamiento_imagen: image.metrics,
         })
         .select('id')
         .single(),

@@ -1,4 +1,5 @@
 'use client'
+import { useRouter } from 'next/navigation'
 import { use, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useResource } from '@/hooks/useResource'
@@ -8,8 +9,17 @@ import { estadoRevision } from '@/lib/contracts'
 import ResultContent from '@/components/analisis/ResultContent'
 import ShareDialog from '@/components/analisis/ShareDialog'
 import SelectorParcela from '@/components/parcelas/SelectorParcela'
-import { PageHeader, Button, Notice, Loading, ActionLink, StatusTag } from '@/components/ui/kit'
+import {
+  PageHeader,
+  Button,
+  Notice,
+  Loading,
+  ActionLink,
+  StatusTag,
+  Modal,
+} from '@/components/ui/kit'
 export default function Page({ params }) {
+  const router = useRouter()
   const { id } = use(params),
     resource = useResource('/api/analisis/' + id),
     { objUsuario, objPerfil } = useAuth()
@@ -17,7 +27,8 @@ export default function Page({ params }) {
     [error, setError] = useState(null),
     [message, setMessage] = useState(null),
     [busy, setBusy] = useState(false),
-    [association, setAssociation] = useState(null)
+    [association, setAssociation] = useState(null),
+    [retire, setRetire] = useState(false)
   const a = resource.data,
     owner = a?.usuario_id === objUsuario?.id
   async function action(fn, text) {
@@ -184,6 +195,43 @@ export default function Page({ params }) {
               </Button>
             )}
           </section>
+          <section className="panel stack">
+            <h2>Retirar esta muestra</h2>
+            <p>
+              Se ocultará del historial, se revocarán sus enlaces y se cancelará el acceso de las
+              asignaciones. Se conservarán los datos y las revisiones para trazabilidad.
+            </p>
+            <Button variant="danger" disabled={busy} onClick={() => setRetire(true)}>
+              Retirar muestra
+            </Button>
+          </section>
+          <Modal open={retire} onClose={() => setRetire(false)} title="Confirmar retirada">
+            <div className="stack">
+              <p>
+                Las consultas compartidas y asignadas quedarán bloqueadas. Esta acción no es un
+                borrado físico de los registros.
+              </p>
+              <Button
+                variant="danger"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true)
+                  setError(null)
+                  try {
+                    await api('/api/historial?id=' + id, { method: 'DELETE' })
+                    router.replace('/historial')
+                  } catch (e) {
+                    setError(e.message)
+                    setRetire(false)
+                  } finally {
+                    setBusy(false)
+                  }
+                }}
+              >
+                Confirmar retirada de muestra
+              </Button>
+            </div>
+          </Modal>
           <ShareDialog analysis={a} open={share} onClose={() => setShare(false)} />
         </>
       )}

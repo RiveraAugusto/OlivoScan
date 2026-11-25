@@ -87,7 +87,11 @@ export default function AnalysisForm({ initialParcela = '', initialOlivo = '', o
               accept="image/jpeg,image/png,image/webp"
               capture="environment"
               disabled={busy || preparing}
-              onChange={(e) => select(e.target.files?.[0])}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                e.target.value = ''
+                select(file)
+              }}
             />
           </label>
           <label className="upload-target">
@@ -98,7 +102,11 @@ export default function AnalysisForm({ initialParcela = '', initialOlivo = '', o
               type="file"
               accept="image/jpeg,image/png,image/webp"
               disabled={busy || preparing}
-              onChange={(e) => select(e.target.files?.[0])}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                e.target.value = ''
+                select(file)
+              }}
             />
           </label>
         </div>
@@ -113,8 +121,9 @@ export default function AnalysisForm({ initialParcela = '', initialOlivo = '', o
               <img src={preview} alt="Vista previa de la muestra que se enviará a analizar" />
             </div>
             <p>
-              {photo.width} × {photo.height} píxeles · {(photo.file.size / 1024 / 1024).toFixed(2)}{' '}
-              MiB preparados de {(photo.originalSize / 1024 / 1024).toFixed(2)} MiB
+              {photo.originalWidth} × {photo.originalHeight} originales → {photo.width} ×{' '}
+              {photo.height} píxeles preparados · {(photo.file.size / 1024 / 1024).toFixed(2)} MiB
+              preparados de {(photo.originalSize / 1024 / 1024).toFixed(2)} MiB
             </p>
             {photo.warning && <Notice>{photo.warning}</Notice>}
             <Button

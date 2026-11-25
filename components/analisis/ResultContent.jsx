@@ -103,6 +103,14 @@ export default function ResultContent({ analysis: a, shareToken, shared = false 
           </p>
         </section>
       )}
+      {!shared && a.procesamiento_imagen?.width && (
+        <p className="muted">
+          Copia procesada: {a.procesamiento_imagen.width} × {a.procesamiento_imagen.height} píxeles
+          · {(a.procesamiento_imagen.bytes / 1024 / 1024).toFixed(2)} MiB. Entrada recibida por el
+          servidor: {a.procesamiento_imagen.original_width} ×{' '}
+          {a.procesamiento_imagen.original_height} píxeles.
+        </p>
+      )}
       {a.advertencias_imagen?.length > 0 && <Notice>{a.advertencias_imagen.join(' ')}</Notice>}
       {a.recomendacion !== undefined && (
         <section className="panel stack">

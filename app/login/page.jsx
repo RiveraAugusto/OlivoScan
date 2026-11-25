@@ -36,7 +36,12 @@ function Login() {
       } else {
         await auth.iniciarSesion(email, password)
         const next = params.get('next')
-        router.replace(next?.startsWith('/') && !next.startsWith('//') ? next : '/dashboard')
+        const destination = new URL(next || '/dashboard', window.location.origin)
+        router.replace(
+          destination.origin === window.location.origin
+            ? destination.pathname + destination.search
+            : '/dashboard',
+        )
       }
     } catch (e) {
       setError(e.message)

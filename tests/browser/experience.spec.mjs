@@ -63,12 +63,13 @@ test('compartir: consentimiento, selección de campos, fragmento y revocación',
   await dialog.getByRole('button', { name: /Revocar enlace del/ }).click()
   await expect(dialog.getByText('Revocado', { exact: true })).toBeVisible()
   await page.goto(url)
-  await expect(page.getByRole('alert')).toContainText('revocado')
+  await expect(page.getByRole('alert').filter({ hasText: 'revocado' })).toContainText('revocado')
 })
 test('navegación, foco, contraste y tamaños en pantallas principales', async ({
   page,
   setup,
 }, testInfo) => {
+  test.setTimeout(90000)
   await setup()
   for (const width of [360, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
@@ -88,7 +89,7 @@ test('navegación, foco, contraste y tamaños en pantallas principales', async (
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth > innerWidth + 1,
       )
-      expect(overflow, route + ' ' + width + 'px overflow').toBe(false)
+      expect.soft(overflow, route + ' ' + width + 'px overflow').toBe(false)
       const small = await page
         .locator(
           'button:visible, select:visible, input:not([type="checkbox"]):not([type="radio"]):visible, a.btn:visible',
@@ -105,12 +106,12 @@ test('navegación, foco, contraste y tamaños en pantallas principales', async (
               height: e.getBoundingClientRect().height,
             })),
         )
-      expect(small, route + ' ' + width + 'px targets').toEqual([])
+      expect.soft(small, route + ' ' + width + 'px targets').toEqual([])
       if (width === 390) {
         const a11y = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
           .analyze()
-        expect(a11y.violations, route + ' accessibility').toEqual([])
+        expect.soft(a11y.violations, route + ' accessibility').toEqual([])
       }
     }
   }

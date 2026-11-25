@@ -319,3 +319,108 @@ describe('Enlaces privados y auditoría', () => {
     })
   })
 })
+
+describe('Integridad adicional de parcelas y revisiones', () => {
+  it('rechaza un olivo perteneciente a otra parcela y códigos duplicados dentro de una parcela', async () => {
+    await expect(
+      db.query("insert into olivos(parcela_id,codigo) values($1,' olv-025 ')", [P]),
+    ).rejects.toThrow()
+    const foreign = (
+      await db.query("insert into olivos(parcela_id,codigo) values($1,'AJENO') returning id", [Q])
+    ).rows[0].id
+    await expect(
+      as(U, () => db.query('update analisis set olivo_id=$1 where id=$2', [foreign, X])),
+    ).rejects.toThrow()
+  })
+  it('un olivo archivado conserva muestras antiguas y bloquea nuevas asociaciones', async () => {
+    await as(U, async () => {
+      await db.query('update analisis set olivo_id=$1 where id=$2', [O, X])
+      await db.query('update olivos set archivado=true where id=$1', [O])
+      expect(
+        (await db.query('select olivo_id from analisis where id=$1', [X])).rows[0].olivo_id,
+      ).toBe(O)
+    })
+    await committed(U, () => db.query('update olivos set archivado=true where id=$1', [O]))
+    await expect(
+      as(U, () => db.query('update analisis set olivo_id=$1 where id=$2', [O, X])),
+    ).rejects.toThrow()
+    await committed(U, () => db.query('update olivos set archivado=false where id=$1', [O]))
+  })
+  it('filtra por parcela y olivo sin alterar el total por paginación', async () => {
+    await as(U, async () => {
+      await db.query('update analisis set olivo_id=$1 where id=$2', [O, X])
+      const r = (
+        await db.query(
+          'select listar_analisis_filtrados(p_parcela=>$1,p_olivo=>$2,p_limite=>1) d',
+          [P, O],
+        )
+      ).rows[0].d
+      expect(r.total).toBe(1)
+      expect(r.ids).toEqual([X])
+      expect((await db.query('select estadisticas_propias() d')).rows[0].d.totalAnalisis).toBe(2)
+    })
+  })
+  it('emite no concluyente, impide corrección vacía y bloquea un rol retirado', async () => {
+    const request = (await committed(U, () => db.query('select (solicitar_revision($1)).id', [H])))
+      .rows[0].id
+    await committed(A, () => db.query("select gestionar_solicitud($1,'asignar',$2)", [request, G]))
+    await committed(G, () => db.query("select gestionar_solicitud($1,'iniciar')", [request]))
+    await expect(
+      as(G, () =>
+        db.query("select emitir_revision($1,'corregida','Falta diagnóstico',null,null)", [request]),
+      ),
+    ).rejects.toThrow()
+    const revision = (
+      await committed(G, () =>
+        db.query(
+          "select (emitir_revision($1,'no_concluyente','Se requiere visita de campo',null,null)).id",
+          [request],
+        ),
+      )
+    ).rows[0].id
+    expect(
+      (
+        await as(U, () =>
+          db.query('select conclusion from revisiones_agronomicas where id=$1', [revision]),
+        )
+      ).rows[0].conclusion,
+    ).toBe('no_concluyente')
+    await expect(
+      as(A, async () => {
+        await db.query("select gestionar_perfil_profesional($1,'agricultor',false)", [G])
+        await db.query("select set_config('request.jwt.claim.sub',$1,true)", [G])
+        expect((await db.query('select * from analisis where id=$1', [H])).rows).toHaveLength(0)
+        await db.query("select emitir_revision($1,'confirmada','Sin permiso',null,$2)", [
+          request,
+          revision,
+        ])
+      }),
+    ).rejects.toThrow()
+  })
+  it('el vencimiento real bloquea tanto los datos como la referencia a la imagen', async () => {
+    const hash = 'd'.repeat(64)
+    const link = (
+      await committed(U, () =>
+        db.query("select crear_enlace($1,$2,array['imagen'],1) d", [X, hash]),
+      )
+    ).rows[0].d.id
+    await db.exec('set role service_role')
+    try {
+      const value = (await db.query('select consultar_enlace($1) d', [hash])).rows[0].d
+      expect(value._imagen_public_id).toBe('olivoscan/privadas/test')
+      expect(value).not.toHaveProperty('notas')
+    } finally {
+      await db.exec('reset role')
+    }
+    await db.query(
+      "update enlaces_compartidos set creado_en=now()-interval '2 days',vence_en=now()-interval '1 day' where id=$1",
+      [link],
+    )
+    await db.exec('set role service_role')
+    try {
+      expect((await db.query('select consultar_enlace($1) d', [hash])).rows[0].d).toBeNull()
+    } finally {
+      await db.exec('reset role')
+    }
+  })
+})

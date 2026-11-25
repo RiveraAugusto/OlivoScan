@@ -19,6 +19,7 @@ export default function PrivateImage({
       url
     imageBlob(src, shareToken)
       .then((blob) => {
+        if (!active) return
         url = URL.createObjectURL(blob)
         if (active) setImage({ identity, url })
       })

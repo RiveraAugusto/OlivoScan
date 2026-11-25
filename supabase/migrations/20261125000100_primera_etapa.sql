@@ -33,6 +33,7 @@ alter table public.analisis
   add column estado_diagnostico text not null default 'posible_afeccion'
     check (estado_diagnostico in ('sano','posible_afeccion','no_reconocido')),
   add column advertencias_imagen text[] not null default '{}',
+  add column procesamiento_imagen jsonb not null default '{}',
   add column eliminado_en timestamptz,
   add constraint analisis_parcela_propietario_fk foreign key(parcela_id,usuario_id)
     references public.parcelas(id,propietario_id),
