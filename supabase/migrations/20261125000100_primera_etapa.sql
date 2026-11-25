@@ -71,7 +71,7 @@ create table public.revisiones_agronomicas (
   unique(id,solicitud_id),
   foreign key(revision_anterior_id,solicitud_id) references public.revisiones_agronomicas(id,solicitud_id),
   check ((version=1 and revision_anterior_id is null) or (version>1 and revision_anterior_id is not null)),
-  check (conclusion<>'corregida' or length(trim(plaga_corregida)) between 1 and 200)
+  check (conclusion<>'corregida' or (plaga_corregida is not null and length(trim(plaga_corregida)) between 1 and 200))
 );
 create table public.enlaces_compartidos (
   id uuid primary key default gen_random_uuid(),
@@ -368,7 +368,7 @@ as $$ begin
    (p_estado in ('pendiente','en_revision') and exists(select 1 from public.solicitudes_revision s where s.analisis_id=a.id and s.estado=p_estado)) or
    (p_estado='revisada' and exists(select 1 from public.solicitudes_revision s join public.revisiones_agronomicas r on r.solicitud_id=s.id where s.analisis_id=a.id)
      and not exists(select 1 from public.solicitudes_revision s where s.analisis_id=a.id and s.estado in ('pendiente','en_revision'))) or
-   (p_estado='sin_solicitud' and not exists(select 1 from public.solicitudes_revision s where s.analisis_id=a.id and s.estado<>'cancelada')))
+   (p_estado='sin_solicitud' and not exists(select 1 from public.solicitudes_revision s where s.analisis_id=a.id and (s.estado in ('pendiente','en_revision') or exists(select 1 from public.revisiones_agronomicas r where r.solicitud_id=s.id)))))
  ), pagina as (select * from base order by creado_en desc,id limit p_limite offset p_offset)
  select jsonb_build_object('ids',coalesce((select jsonb_agg(id order by creado_en desc,id) from pagina),'[]'::jsonb),'total',(select count(*) from base))
  );

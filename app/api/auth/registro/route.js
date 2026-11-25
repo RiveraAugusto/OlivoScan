@@ -1,70 +1,32 @@
-// ============================================================
-// ARCHIVO: app/api/auth/registro/route.js
-// DESCRIPCION: Endpoint para el registro de nuevos usuarios en el
-//              servidor, utilizando Supabase Auth y pasando metadatos.
-// SPRINT: 1
-// RF: RF-009
-// ============================================================
-
-import { supabase } from '@/lib/supabase'
-
-// Funcion exportada para manejar peticiones POST
-export async function POST(request) {
-  try {
-    // Obtener datos de registro del cuerpo de la peticion
-    const objRegistro = await request.json()
-    const { email, password, nombre, zonaGeografica } = objRegistro
-
-    // Validar campos obligatorios
-    if (!email || !password || !nombre) {
-      return Response.json(
-        { datos: null, error: 'El nombre, correo electronico y contrasena son obligatorios.' },
-        { status: 400 }
-      )
-    }
-
-    // Ejecutar el registro en Supabase Auth pasándole los datos de perfil como metadatos
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nombre,
-          zona_geografica: zonaGeografica || '',
-        },
-      },
+import { z } from 'zod'
+import { createClient } from '@supabase/supabase-js'
+import { endpoint, json, HttpError } from '@/lib/server/http'
+export const POST = endpoint(
+  async (request) => {
+    const input = z
+      .object({
+        email: z.email(),
+        password: z.string().min(8).max(200),
+        nombre: z.string().trim().min(1).max(120),
+        zonaGeografica: z.string().trim().max(120).default(''),
+      })
+      .strict()
+      .parse(await request.json())
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
+      key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!url || !key) throw new HttpError(503, 'El registro no está configurado.')
+    const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
+    const { data, error } = await db.auth.signUp({
+      email: input.email,
+      password: input.password,
+      options: { data: { nombre: input.nombre, zona_geografica: input.zonaGeografica } },
     })
-
-    // Controlar errores devueltos por Supabase
-    if (error) {
-      const errorMsgLower = (error.message || '').toLowerCase()
-      if (errorMsgLower.includes('already registered')) {
-        return Response.json(
-          { datos: null, error: 'El correo electronico ingresado ya se encuentra registrado.' },
-          { status: 400 }
-        )
-      }
-      return Response.json(
-        { datos: null, error: error.message || 'Ocurrio un problema al registrar la cuenta. Verifique los datos.' },
-        { status: 400 }
+    if (error)
+      throw new HttpError(
+        400,
+        'No se pudo completar el registro. Revise su correo o vuelva a intentarlo más tarde.',
       )
-    }
-
-    // Validar si el usuario ya existe (identities vacio por proteccion anti-enumeracion de Supabase)
-    if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-      return Response.json(
-        { datos: null, error: 'El correo electronico ingresado ya se encuentra registrado.' },
-        { status: 400 }
-      )
-    }
-
-    // Retornar la informacion de registro en formato JSON estandarizado
-    return Response.json({ datos: data, error: null })
-  } catch (error) {
-    console.error('Error en API Auth Registro:', error)
-    return Response.json(
-      { datos: null, error: 'No se pudo procesar la solicitud de registro.' },
-      { status: 500 }
-    )
-  }
-}
+    return json(data, 201)
+  },
+  { publicAccess: true },
+)

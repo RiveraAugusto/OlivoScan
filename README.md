@@ -1,57 +1,47 @@
 # OlivoScan 🌿
 
-**OlivoScan** es una aplicación web desarrollada para la empresa **La Aceitunera**, orientada al apoyo del manejo fitosanitario del cultivo de olivo mediante inteligencia artificial.
+Cuaderno de muestras del olivar para La Aceitunera, Ilo, Moquegua. Ofrece orientación preliminar mediante IA y revisión agronómica con trazabilidad.
 
-El sistema permite realizar diagnósticos preliminares de posibles plagas y enfermedades a partir de imágenes de hojas, ramas y frutos del olivo.
+## Primera etapa
 
-## Características principales
+- Pantallas adaptables con navegación consistente y estados claros.
+- Parcelas obligatorias para nuevas muestras; identificar cada olivo es opcional.
+- Diagnóstico original de IA separado del aporte del agricultor y la revisión profesional.
+- Asignaciones autorizadas, revisiones versionadas y notificaciones.
+- Historial filtrable, comparación contextual y PDF.
+- Fotografías privadas y enlaces con campos seleccionados, vencimiento y revocación.
 
-- **Diagnóstico con IA:** análisis de imágenes para identificar posibles plagas y enfermedades.
-- **Recomendaciones:** información y sugerencias iniciales para el manejo fitosanitario.
-- **Historial:** registro y consulta de diagnósticos realizados.
-- **Panel de control:** visualización de información y actividad del sistema.
-- **Reportes PDF:** generación de documentos con los resultados del diagnóstico.
+La confianza del modelo no equivale a exactitud medida. La meta superior al 90 % necesita validación independiente. El seguimiento de casos permanece fuera de esta etapa.
 
-## Desarrollo del proyecto
+## Desarrollo
 
-El proyecto nació de la necesidad de contar con una herramienta tecnológica que facilite la identificación temprana de problemas fitosanitarios en los cultivos de olivo de la empresa La Aceitunera.
-
-Para su desarrollo se realizó inicialmente un análisis de factibilidad y una especificación de requisitos de software (SRS), donde se definieron las necesidades, funcionalidades y alcance del sistema.
-
-Posteriormente, se desarrolló una aplicación web utilizando inteligencia artificial para el análisis visual de imágenes, junto con servicios de almacenamiento y gestión de información.
-
-## Tecnologías utilizadas
-
-- **Next.js y React:** desarrollo de la aplicación web.
-- **Tailwind CSS:** diseño de interfaces.
-- **Supabase:** autenticación y base de datos.
-- **Google Gemini:** análisis de imágenes mediante inteligencia artificial.
-- **Cloudinary:** almacenamiento de imágenes.
-- **jsPDF:** generación de reportes PDF.
-
-## Instalación
-
-Clonar el repositorio:
+Node.js 22.12 o superior; CI usa Node 24.
 
 ```bash
 git clone https://github.com/RiveraAugusto/OlivoScan.git
 cd OlivoScan
-```
-
-Instalar las dependencias:
-
-```bash
-npm install
-```
-
-Configurar las variables de entorno (.env.local)
-
-Completar las credenciales necesarias de Supabase, Cloudinary y Gemini en `.env.local`.
-
-Iniciar el servidor de desarrollo:
-
-```bash
+git switch codex/primera-etapa-olivoscan
+npm ci
+cp .env.example .env.local
+# Completar las credenciales y preparar la base según la guía de migración.
 npm run dev
 ```
 
-Abrir [http://localhost:3000](http://localhost:3000) en el navegador.
+Abrir http://localhost:3000. El proyecto utiliza Next.js/React, Supabase, Gemini, Cloudinary y jsPDF.
+
+## Verificación
+
+```bash
+npm run lint
+npm test
+npm run build
+npx playwright install chromium webkit
+npm run test:e2e
+npm audit --audit-level=moderate
+```
+
+Las pruebas de interfaz usan respuestas simuladas, mientras que las reglas de acceso se verifican ejecutando SQL real en PostgreSQL/PGlite. Se requiere además verificar los proveedores configurados y las cámaras reales antes de producción.
+
+- [Alcance y arquitectura](docs/primera-etapa.md)
+- [Matriz de aceptación](docs/aceptacion-primera-etapa.md)
+- [Migración y puesta en revisión](docs/migracion-primera-etapa.md)
