@@ -6,21 +6,37 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:db": "vitest run tests/database.test.mjs",
+    "test:e2e": "playwright test",
+    "format": "prettier --write app components hooks lib tests scripts *.mjs *.json docs .github",
+    "format:check": "prettier --check app components hooks lib tests scripts *.mjs *.json docs .github"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
     "cloudinary": "^2.10.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.16.0",
-    "next": "16.2.6",
+    "next": "^16.4.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.1",
+    "@electric-sql/pglite": "^0.6.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4"
+    "eslint-config-next": "^16.4.6",
+    "prettier": "^3.10.1",
+    "tailwindcss": "^4",
+    "vitest": "^5.1.2"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

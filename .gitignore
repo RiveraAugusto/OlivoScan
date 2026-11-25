@@ -54,3 +54,8 @@ documentacion/
 
 # Imagenes generadas por la aplicacion
 public/uploads/
+
+# Browser evidence (generated, not source)
+/test-results/
+/playwright-report/
+/.migration-local/
