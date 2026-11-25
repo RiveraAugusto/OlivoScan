@@ -1,5 +1,5 @@
 'use client'
-import { MapPin, ScanLine, ClipboardCheck, TriangleAlert } from 'lucide-react'
+import { MapPin, ScanLine, ClipboardCheck, TriangleAlert, TreeDeciduous } from 'lucide-react'
 import { useResource } from '@/hooks/useResource'
 import { PageHeader, Loading, Notice, ActionLink, Empty } from '@/components/ui/kit'
 export default function Page() {
@@ -27,6 +27,12 @@ export default function Page() {
                   d.parcelasAnalizadas,
                   'Parcelas con muestras',
                   'Parcelas distintas del historial',
+                ],
+                [
+                  TreeDeciduous,
+                  d.olivosConMuestras,
+                  'Olivos identificados con muestras',
+                  'Árboles distintos del historial',
                 ],
                 [
                   TriangleAlert,
@@ -67,6 +73,60 @@ export default function Page() {
                 </Empty>
               </div>
             )}
+            <section className="panel stack">
+              <h2>Distribución por parcela</h2>
+              <p className="muted">
+                Todo el historial disponible. Las muestras sin identificador de olivo no se
+                convierten en un conteo de árboles.
+              </p>
+              <div
+                className="data-scroll"
+                tabIndex={0}
+                role="region"
+                aria-label="Distribución de muestras por parcela"
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Parcela</th>
+                      <th>Muestras</th>
+                      <th>Olivos identificados distintos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(d.distribucionParcelas || []).map((p) => (
+                      <tr key={p.parcela_id || 'historico'}>
+                        <th scope="row">
+                          {p.parcela_id ? p.codigo + ' · ' + p.nombre : 'Sin parcela (histórico)'}
+                        </th>
+                        <td>{p.muestras}</td>
+                        <td>{p.olivos_identificados}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            <section className="panel stack">
+              <h2>Solicitudes de revisión por estado</h2>
+              <p className="muted">
+                Solicitudes de todo el historial disponible; una muestra puede tener varias
+                solicitudes a lo largo del tiempo.
+              </p>
+              <div className="grid-cards">
+                {[
+                  ['pendiente', 'Pendientes'],
+                  ['en_revision', 'En revisión'],
+                  ['revisada', 'Con revisión emitida'],
+                  ['cancelada', 'Canceladas'],
+                ].map(([state, label]) => (
+                  <div key={state}>
+                    <strong>{Number(d.solicitudesPorEstado?.[state] || 0)}</strong>
+                    <p>{label}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
             <section className="panel stack">
               <div>
                 <h2>Muestras de los últimos seis meses</h2>

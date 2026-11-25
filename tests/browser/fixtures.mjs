@@ -144,6 +144,19 @@ export const test = base.extend({
           data = {
             totalAnalisis: 1,
             parcelasAnalizadas: 1,
+            olivosConMuestras: 0,
+            distribucionParcelas: [
+              {
+                parcela_id: parcela,
+                codigo: 'NORTE',
+                nombre: 'Parcela Norte',
+                muestras: 1,
+                olivos_identificados: 0,
+              },
+            ],
+            solicitudesPorEstado: {
+              pendiente: requests.filter((s) => s.estado === 'pendiente').length,
+            },
             parcelasActivas: 1,
             muestrasSinParcela: 0,
             muestrasGraves30d: 0,
@@ -152,8 +165,10 @@ export const test = base.extend({
             plagasMasFrecuentes: [],
           }
         else if (path === '/api/notificaciones') data = []
-        else if (path === '/api/catalogo') data = []
-        else if (path === '/api/historial') {
+        else if (path === '/api/catalogo') {
+          data = []
+          extra = { mes: 'noviembre' }
+        } else if (path === '/api/historial') {
           data = [{ ...sample, notas: notes, solicitudes: requests }]
           extra = { total: 1, pagina: 1, limite: 12 }
         } else if (path === '/api/analisis' && method === 'POST') {

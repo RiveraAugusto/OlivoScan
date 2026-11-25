@@ -392,6 +392,15 @@ as $$
  select jsonb_build_object(
  'totalAnalisis',(select count(*) from base),
  'parcelasAnalizadas',(select count(distinct parcela_id) from base),
+ 'olivosConMuestras',(select count(distinct olivo_id) from base),
+ 'distribucionParcelas',coalesce((select jsonb_agg(to_jsonb(d)) from (
+  select a.parcela_id,p.codigo,p.nombre,count(*) muestras,count(distinct a.olivo_id) olivos_identificados
+  from base a left join public.parcelas p on p.id=a.parcela_id
+  group by a.parcela_id,p.codigo,p.nombre order by count(*) desc,p.codigo nulls last
+ ) d),'[]'::jsonb),
+ 'solicitudesPorEstado',coalesce((select jsonb_object_agg(d.estado,d.cantidad) from (
+  select s.estado,count(*) cantidad from public.solicitudes_revision s join base a on a.id=s.analisis_id group by s.estado
+ ) d),'{}'::jsonb),
  'parcelasActivas',(select count(*) from public.parcelas where propietario_id=auth.uid() and not archivada),
  'muestrasSinParcela',(select count(*) from base where parcela_id is null),
  'muestrasGraves30d',(select count(*) from base where estado_diagnostico='posible_afeccion' and severidad='grave' and creado_en>=now()-interval '30 days'),

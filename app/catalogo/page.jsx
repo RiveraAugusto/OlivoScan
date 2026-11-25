@@ -105,6 +105,12 @@ export default function Page() {
       setBusy(false)
     }
   }
+  const month = resource.mes || '',
+    seasonal = (resource.data || []).filter((p) =>
+      (p.meses_riesgo || []).some(
+        (m) => m.toLocaleLowerCase('es') === month.toLocaleLowerCase('es'),
+      ),
+    )
   const rows = (resource.data || []).filter((p) =>
     (p.nombre + ' ' + p.sintomas).toLowerCase().includes(search.toLowerCase()),
   )
@@ -120,6 +126,23 @@ export default function Page() {
         Las fichas existentes son información de referencia. Verifique la autorización vigente del
         producto, su etiqueta y la recomendación profesional antes de cualquier aplicación.
       </Notice>
+      {month && (
+        <section className="panel stack">
+          <h2>Recordatorios del mes · {month}</h2>
+          <p>Zona registrada: {objPerfil?.zona_geografica || 'No indicada en el perfil'}.</p>
+          <p>
+            {seasonal.length
+              ? 'Fichas con meses de referencia coincidentes: ' +
+                seasonal.map((p) => p.nombre).join(', ') +
+                '.'
+              : 'No hay fichas con un mes de referencia coincidente. Esto no significa ausencia de plagas.'}
+          </p>
+          <p className="muted">
+            Este recordatorio usa los meses del catálogo; no incorpora clima observado ni predice el
+            riesgo de su zona. Confirme la pertinencia del calendario con un especialista local.
+          </p>
+        </section>
+      )}
       {(error || resource.error) && <Notice type="error">{error || resource.error}</Notice>}
       <label htmlFor="catalog-search">
         Buscar por nombre o síntoma

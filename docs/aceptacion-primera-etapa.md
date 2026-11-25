@@ -41,9 +41,9 @@ Referencia: 34 criterios incorporados al SRS 1.1. Las comprobaciones automática
 
 ## Estado de ejecución
 
-- Pruebas locales: contratos, procesamiento real de imágenes, límites HTTP y PostgreSQL/PGlite.
+- 43 pruebas locales: contratos, procesamiento real de imágenes, límites HTTP y PostgreSQL/PGlite.
 - Compilación de producción y ESLint.
 - Auditoría npm tras actualizar Next.js y dependencias.
-- Pruebas de interfaz preparadas para Chromium y WebKit, anchos 360/390/768/1024/1440. En el entorno local los procesos de navegador no pudieron arrancar; verificar el resultado del workflow de esta rama antes de dar estas pruebas por aprobadas.
+- Pruebas de interfaz en GitHub Actions para Chromium y WebKit sobre Linux, anchos 360/390/768/1024/1440. El workflow conserva resultados, versiones y capturas. El entorno local impide arrancar los procesos de navegador; la evidencia de ejecución está en los checks de la rama. WebKit sobre Linux no acredita Safari en macOS/iOS.
 - No se han aplicado migraciones a producción ni ejecutado llamadas de diagnóstico con claves reales durante esta implementación.
 - Las pruebas de campo, cámaras reales, matriz actual/anterior de Chrome/Safari, detalle de síntomas y exactitud del modelo siguen pendientes. La segunda etapa no se implementó.

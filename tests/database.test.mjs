@@ -357,7 +357,12 @@ describe('Integridad adicional de parcelas y revisiones', () => {
       ).rows[0].d
       expect(r.total).toBe(1)
       expect(r.ids).toEqual([X])
-      expect((await db.query('select estadisticas_propias() d')).rows[0].d.totalAnalisis).toBe(2)
+      const stats = (await db.query('select estadisticas_propias() d')).rows[0].d
+      expect(stats.totalAnalisis).toBe(2)
+      expect(stats.parcelasAnalizadas).toBe(1)
+      expect(stats.olivosConMuestras).toBe(1)
+      expect(stats.distribucionParcelas.find((p) => p.parcela_id === P).muestras).toBe(1)
+      expect(stats.distribucionParcelas.find((p) => p.parcela_id === null).muestras).toBe(1)
     })
   })
   it('emite no concluyente, impide corrección vacía y bloquea un rol retirado', async () => {

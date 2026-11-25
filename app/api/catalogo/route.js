@@ -27,7 +27,11 @@ function authorize(perfil) {
     throw new HttpError(403, 'No tiene permiso para gestionar el catálogo.')
 }
 export const GET = endpoint(async (_, { db }) =>
-  json((await result(db.from('plagas_catalogo').select('*').order('nombre'))).data),
+  json((await result(db.from('plagas_catalogo').select('*').order('nombre'))).data, 200, {
+    mes: new Intl.DateTimeFormat('es-PE', { month: 'long', timeZone: 'America/Lima' }).format(
+      new Date(),
+    ),
+  }),
 )
 export const POST = endpoint(async (request, { db, perfil }) => {
   authorize(perfil)

@@ -135,6 +135,18 @@ test('navegación, foco, contraste y tamaños en pantallas principales', async (
     ),
     contentType: 'application/json',
   })
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    for (const route of ['/dashboard', '/analisis']) {
+      await page.goto(route)
+      await expect(page.locator('h1')).toBeVisible()
+      await expect(page.getByText('Cargando información…', { exact: true })).toHaveCount(0)
+      await testInfo.attach(route.slice(1) + '-' + width, {
+        body: await page.screenshot({ fullPage: true }),
+        contentType: 'image/png',
+      })
+    }
+  }
 })
 test('acceso público y enlace anterior sin diagnóstico expuesto', async ({ page, request }) => {
   await page.goto('/login')
