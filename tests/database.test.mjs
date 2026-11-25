@@ -278,6 +278,23 @@ describe('Enlaces privados y auditoría', () => {
       await db.exec('reset role')
     }
   })
+  it('compartir revisiones conserva autoría y vínculo entre versiones sin publicar otros campos', async () => {
+    const hash = 'e'.repeat(64)
+    await committed(U, () => db.query("select crear_enlace($1,$2,array['revision'],7)", [X, hash]))
+    await db.exec('set role service_role')
+    try {
+      const value = (await db.query('select consultar_enlace($1) d', [hash])).rows[0].d
+      expect(value.revisiones).toHaveLength(2)
+      const first = value.revisiones.find((r) => r.version === 1),
+        second = value.revisiones.find((r) => r.version === 2)
+      expect(first.autor_nombre).toBe('Profesional')
+      expect(second.revision_anterior_id).toBe(first.id)
+      expect(value).not.toHaveProperty('notas')
+      expect(value).not.toHaveProperty('plaga_detectada')
+    } finally {
+      await db.exec('reset role')
+    }
+  })
   it('el cliente y anon no resuelven huellas ni consultan la tabla completa', async () => {
     await expect(as(U, () => db.query('select consultar_enlace($1)', [hash]))).rejects.toThrow()
     await expect(as(U, () => db.query('select huella from enlaces_compartidos'))).rejects.toThrow()

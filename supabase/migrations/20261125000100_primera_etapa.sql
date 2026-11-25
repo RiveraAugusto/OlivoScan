@@ -260,7 +260,7 @@ begin
    'parcela',(select jsonb_build_object('codigo',p.codigo,'nombre',p.nombre) from public.parcelas p where p.id=a.parcela_id),
    'olivo',(select jsonb_build_object('codigo',o.codigo) from public.olivos o where o.id=a.olivo_id)); end if;
  if 'revision'=any(e.campos) then resultado=resultado||jsonb_build_object('revisiones',coalesce((
-   select jsonb_agg(jsonb_build_object('autor_nombre',r.autor_nombre,'creado_en',r.creado_en,'conclusion',r.conclusion,
+   select jsonb_agg(jsonb_build_object('id',r.id,'revision_anterior_id',r.revision_anterior_id,'autor_nombre',r.autor_nombre,'creado_en',r.creado_en,'conclusion',r.conclusion,
    'observaciones',r.observaciones,'plaga_corregida',r.plaga_corregida,'version',r.version) order by r.creado_en)
    from public.revisiones_agronomicas r join public.solicitudes_revision s on s.id=r.solicitud_id where s.analisis_id=a.id),'[]'::jsonb)); end if;
  if 'imagen'=any(e.campos) and a.imagen_privada then resultado=resultado||jsonb_build_object('_imagen_public_id',a.imagen_public_id); end if;
