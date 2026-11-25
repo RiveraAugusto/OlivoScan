@@ -120,6 +120,7 @@ test('navegación, foco, contraste y tamaños en pantallas principales', async (
   await expect(page.getByLabel('Código de parcela')).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).not.toBeVisible()
+  await expect(page.getByRole('button', { name: 'Crear parcela', exact: true })).toBeFocused()
   await testInfo.attach('browser-matrix', {
     body: JSON.stringify(
       {
@@ -155,4 +156,68 @@ test('acceso público y enlace anterior sin diagnóstico expuesto', async ({ pag
   await expect(
     page.getByRole('heading', { name: 'Este enlace ya no está disponible' }),
   ).toBeVisible()
+})
+
+test('agrónomo: iniciar, emitir y rectificar sin sobrescribir versiones', async ({
+  page,
+  setup,
+}) => {
+  await setup('agronomo')
+  await page.goto('/revisiones')
+  await page.getByRole('button', { name: 'Iniciar revisión', exact: true }).click()
+  await expect(page.getByText('Revisión iniciada.', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Emitir revisión', exact: true }).click()
+  let dialog = page.getByRole('dialog', { name: 'Emitir revisión agronómica' })
+  await dialog.getByLabel('Conclusión', { exact: true }).selectOption('no_concluyente')
+  await dialog.getByLabel('Fundamento y observaciones').fill('Se requiere una visita al campo.')
+  await dialog.getByRole('button', { name: 'Emitir revisión firmada con mi cuenta' }).click()
+  await expect(page.getByText('Versión 1', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Rectificar con nueva versión' }).click()
+  dialog = page.getByRole('dialog', { name: 'Emitir revisión agronómica' })
+  await dialog.getByLabel('Conclusión', { exact: true }).selectOption('corregida')
+  await dialog.getByLabel('Diagnóstico corregido', { exact: true }).fill('Repilo')
+  await dialog.getByLabel('Fundamento y observaciones').fill('Nueva evidencia revisada.')
+  await dialog.getByRole('button', { name: 'Emitir revisión firmada con mi cuenta' }).click()
+  await expect(page.getByText('Versión 1', { exact: true })).toBeVisible()
+  await expect(page.getByText('Versión 2', { exact: true })).toBeVisible()
+  await expect(page.getByText('Victoria Campo ·', { exact: false }).first()).toBeVisible()
+})
+test('administración: asignar sin acceso al contenido de la muestra', async ({ page, setup }) => {
+  await setup('admin')
+  await page.goto('/revisiones')
+  await expect(page.getByRole('link', { name: 'Ver muestra y diagnóstico' })).toHaveCount(0)
+  await page
+    .getByLabel('Especialista autorizado', { exact: true })
+    .selectOption({ label: 'Especialista Campo' })
+  await page.getByRole('button', { name: 'Guardar asignación' }).click()
+  await expect(
+    page.getByText('Especialista asignado; se notificó la solicitud.', { exact: true }),
+  ).toBeVisible()
+  await expect(page.getByText('Especialista asignado', { exact: true })).toBeVisible()
+})
+test('fallo de red conserva foto y permite reintentar sin afirmar guardado', async ({
+  page,
+  setup,
+}) => {
+  await setup()
+  let fail = true
+  await page.route('**/api/analisis', async (route) => {
+    if (fail && route.request().method() === 'POST') {
+      fail = false
+      await route.abort('failed')
+    } else await route.fallback()
+  })
+  await page.goto('/analisis')
+  await page.getByLabel('Parcela obligatoria').selectOption({ label: 'NORTE · Parcela Norte' })
+  await page.getByLabel('Elegir de la galería').setInputFiles('public/images/hoja_sana.png')
+  await page.getByRole('button', { name: 'Analizar y guardar muestra' }).click()
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'La foto permanece disponible' }),
+  ).toBeVisible()
+  await expect(
+    page.getByAltText('Vista previa de la muestra que se enviará a analizar'),
+  ).toBeVisible()
+  await expect(page).toHaveURL('/analisis')
+  await page.getByRole('button', { name: 'Analizar y guardar muestra' }).click()
+  await expect(page).toHaveURL('/analisis/' + id)
 })

@@ -28,7 +28,12 @@ export const sample = {
 export const test = base.extend({
   setup: async ({ page }, provide) => {
     async function setup(role = 'agricultor') {
-      const uid = role === 'agronomo' ? agronomo : owner
+      const uid =
+        role === 'agronomo'
+          ? agronomo
+          : role === 'admin'
+            ? '10000000-0000-4000-8000-000000000004'
+            : owner
       const user = {
         id: uid,
         email: 'campo@example.test',
@@ -73,7 +78,20 @@ export const test = base.extend({
             archivada: false,
           },
         ],
-        requests = [],
+        requests = ['agronomo', 'admin'].includes(role)
+          ? [
+              {
+                id: requestId,
+                analisis_id: id,
+                propietario_id: owner,
+                agronomo_id: role === 'agronomo' ? agronomo : null,
+                estado: 'pendiente',
+                creado_en: sample.creado_en,
+                actualizado_en: sample.creado_en,
+                revisiones: [],
+              },
+            ]
+          : [],
         links = [],
         notes = '',
         farmerCorrection = null,
@@ -165,7 +183,57 @@ export const test = base.extend({
                 revisiones: [],
               },
             ]
+          if (method === 'PATCH') {
+            const input = body()
+            requests = requests.map((s) =>
+              s.id === input.id
+                ? {
+                    ...s,
+                    agronomo_id: input.agronomo_id || s.agronomo_id,
+                    estado:
+                      input.accion === 'iniciar'
+                        ? 'en_revision'
+                        : input.accion === 'cancelar'
+                          ? 'cancelada'
+                          : 'pendiente',
+                  }
+                : s,
+            )
+          }
+          if (method === 'PUT') {
+            const input = body()
+            requests = requests.map((s) =>
+              s.id === input.solicitud_id
+                ? {
+                    ...s,
+                    estado: 'revisada',
+                    revisiones: [
+                      ...s.revisiones,
+                      {
+                        id: '60000000-0000-4000-8000-00000000000' + (s.revisiones.length + 1),
+                        autor_nombre: 'Victoria Campo',
+                        version: s.revisiones.length + 1,
+                        revision_anterior_id: input.anterior_id,
+                        creado_en: sample.creado_en,
+                        conclusion: input.conclusion,
+                        plaga_corregida: input.plaga_corregida,
+                        observaciones: input.observaciones,
+                      },
+                    ],
+                  }
+                : s,
+            )
+          }
           data = requests
+        } else if (path === '/api/administracion') {
+          data = [
+            {
+              id: agronomo,
+              nombre: 'Especialista Campo',
+              rol: 'agronomo',
+              gestionar_catalogo: false,
+            },
+          ]
         } else if (path === '/api/enlaces') {
           if (method === 'POST') {
             const input = body()

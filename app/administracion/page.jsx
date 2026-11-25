@@ -6,7 +6,9 @@ import { api } from '@/lib/client-api'
 import { PageHeader, Notice, Loading, Button } from '@/components/ui/kit'
 function ProfileRole({ profile, onSave }) {
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState(null)
+    [error, setError] = useState(null),
+    [role, setRole] = useState(profile.rol),
+    [catalog, setCatalog] = useState(!!profile.gestionar_catalogo)
   async function submit(e) {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
@@ -35,13 +37,27 @@ function ProfileRole({ profile, onSave }) {
         <form className="stack" onSubmit={submit}>
           <label htmlFor={'role-' + profile.id}>
             Rol
-            <select id={'role-' + profile.id} name="rol" defaultValue={profile.rol}>
+            <select
+              id={'role-' + profile.id}
+              name="rol"
+              value={role}
+              onChange={(e) => {
+                setRole(e.target.value)
+                if (e.target.value !== 'agronomo') setCatalog(false)
+              }}
+            >
               <option value="agricultor">Agricultor</option>
               <option value="agronomo">Agrónomo autorizado</option>
             </select>
           </label>
           <label className="checkbox-label">
-            <input name="catalogo" type="checkbox" defaultChecked={profile.gestionar_catalogo} />
+            <input
+              name="catalogo"
+              type="checkbox"
+              checked={catalog}
+              disabled={role !== 'agronomo'}
+              onChange={(e) => setCatalog(e.target.checked)}
+            />
             Autorizar gestión del catálogo (permiso independiente)
           </label>
           <Button disabled={busy}>
