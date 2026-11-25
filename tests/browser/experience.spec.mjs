@@ -168,13 +168,15 @@ test('agrónomo: iniciar, emitir y rectificar sin sobrescribir versiones', async
   await expect(page.getByText('Revisión iniciada.', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Emitir revisión', exact: true }).click()
   let dialog = page.getByRole('dialog', { name: 'Emitir revisión agronómica' })
-  await dialog.getByLabel('Conclusión', { exact: true }).selectOption('no_concluyente')
+  await dialog
+    .getByRole('combobox', { name: 'Conclusión', exact: true })
+    .selectOption('no_concluyente')
   await dialog.getByLabel('Fundamento y observaciones').fill('Se requiere una visita al campo.')
   await dialog.getByRole('button', { name: 'Emitir revisión firmada con mi cuenta' }).click()
   await expect(page.getByText('Versión 1', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Rectificar con nueva versión' }).click()
   dialog = page.getByRole('dialog', { name: 'Emitir revisión agronómica' })
-  await dialog.getByLabel('Conclusión', { exact: true }).selectOption('corregida')
+  await dialog.getByRole('combobox', { name: 'Conclusión', exact: true }).selectOption('corregida')
   await dialog.getByLabel('Diagnóstico corregido', { exact: true }).fill('Repilo')
   await dialog.getByLabel('Fundamento y observaciones').fill('Nueva evidencia revisada.')
   await dialog.getByRole('button', { name: 'Emitir revisión firmada con mi cuenta' }).click()
@@ -187,7 +189,7 @@ test('administración: asignar sin acceso al contenido de la muestra', async ({ 
   await page.goto('/revisiones')
   await expect(page.getByRole('link', { name: 'Ver muestra y diagnóstico' })).toHaveCount(0)
   await page
-    .getByLabel('Especialista autorizado', { exact: true })
+    .getByRole('combobox', { name: 'Especialista autorizado', exact: true })
     .selectOption({ label: 'Especialista Campo' })
   await page.getByRole('button', { name: 'Guardar asignación' }).click()
   await expect(

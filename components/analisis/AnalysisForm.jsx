@@ -12,7 +12,8 @@ export default function AnalysisForm({ initialParcela = '', initialOlivo = '', o
     [photo, setPhoto] = useState(null),
     [busy, setBusy] = useState(false),
     [preparing, setPreparing] = useState(false),
-    [error, setError] = useState(null)
+    [error, setError] = useState(null),
+    [needsSession, setNeedsSession] = useState(false)
   const sequence = useRef(0)
   const preview = photo?.preview
   useEffect(
@@ -41,6 +42,7 @@ export default function AnalysisForm({ initialParcela = '', initialOlivo = '', o
     if (!photo || !parcela) return
     setBusy(true)
     setError(null)
+    setNeedsSession(false)
     try {
       const body = new FormData()
       body.set('imagen', photo.file)
@@ -50,6 +52,7 @@ export default function AnalysisForm({ initialParcela = '', initialOlivo = '', o
       onComplete(response.datos)
     } catch (e) {
       setError(e.message)
+      setNeedsSession(e.status === 401)
     } finally {
       setBusy(false)
     }
@@ -146,6 +149,11 @@ export default function AnalysisForm({ initialParcela = '', initialOlivo = '', o
           {photo
             ? 'La foto permanece disponible para volver a intentarlo.'
             : 'Seleccione otra fotografía.'}
+          {needsSession && (
+            <a className="inline-link" href="/login" target="_blank" rel="noopener noreferrer">
+              Restablecer sesión en otra pestaña
+            </a>
+          )}
         </Notice>
       )}
       {busy && (
