@@ -26,7 +26,7 @@ export const sample = {
   solicitudes: [],
 }
 export const test = base.extend({
-  setup: async ({ page }, use) => {
+  setup: async ({ page }, provide) => {
     async function setup(role = 'agricultor') {
       const uid = role === 'agronomo' ? agronomo : owner
       const user = {
@@ -212,7 +212,7 @@ export const test = base.extend({
         return route.fulfill({ status: 200, json: { datos: data, error: null, ...extra } })
       })
     }
-    await use(setup)
+    await provide(setup)
   },
 })
 export { expect, owner, parcela, id }
